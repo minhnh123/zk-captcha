@@ -27,25 +27,6 @@ Backend: Python with Flask - A micro web framework used to serve the frontend, g
 
 Frontend: HTML, JavaScript, and Tailwind CSS - For creating the user interface and handling client-side logic.
 
-Project Structure
-zk-captcha-tier2/
-├── backend/
-│ └── app.py # The Flask web server
-├── build/
-│ ├── puzzle.r1cs # The compiled circuit constraint system
-│ ├── puzzle_js/
-│ │ └── puzzle.wasm # The WebAssembly version of the circuit for the browser
-│ ├── puzzle_final.zkey # The final proving key
-│ └── verification_key.json # The key used by the backend to verify proofs
-├── circuits/
-│ └── puzzle.circom # The source code for our ZK circuit
-├── frontend/
-│ ├── index.html # The CAPTCHA page
-│ ├── main.html # The public homepage of the website
-│ ├── members.html # The protected members-only page
-│ └── script.js # The client-side JavaScript for proof generation
-└── setup.mjs # The Node.js script to compile the circuit and generate keys
-
 Getting Started
 Prerequisites
 Node.js and npm: Required to run the setup script and install snarkjs.
