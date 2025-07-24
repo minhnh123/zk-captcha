@@ -1,78 +1,105 @@
-zkCAPTCHA: A Zero-Knowledge Proof CAPTCHA
-zkCAPTCHA is a proof-of-concept project that demonstrates how Zero-Knowledge Proofs (ZKPs) can be used to create a privacy-preserving, bot-resistant CAPTCHA. Instead of requiring users to identify images or solve complex visual puzzles, this project asks them to solve a simple mathematical puzzle and generate a cryptographic proof that they know the answer, without revealing the answer itself.
+# zkCAPTCHA: A Zero-Knowledge Proof CAPTCHA
 
-This project is built as a complete web application, featuring a ZK circuit, a Python backend, and a JavaScript frontend, integrated into a simple "members-only" website to demonstrate a real-world use case.
+zkCAPTCHA is a proof-of-concept project demonstrating how Zero-Knowledge Proofs (ZKPs) can create a privacy-preserving, bot-resistant CAPTCHA. Instead of identifying images or solving visual puzzles, users solve a simple mathematical puzzle and generate a cryptographic proof that they know the answer—without revealing it.
 
-Features
-Dynamic Challenges: The backend generates a new random mathematical puzzle for each CAPTCHA attempt.
+---
 
-Client-Side Proof Generation: The user's browser generates a ZK-SNARK (a groth16 proof) locally using snarkjs. The user's secret answer never leaves their machine.
+## ✨ Features
 
-Secure Backend Verification: A Python Flask server receives the proof and cryptographically verifies its validity using the circuit's verification key.
+- **Dynamic Challenges:** Each CAPTCHA attempt generates a new random mathematical puzzle.
+- **Client-Side Proof Generation:** The browser generates a ZK-SNARK (Groth16 proof) locally using `snarkjs`. The answer never leaves the user's machine.
+- **Secure Backend Verification:** A Python Flask server verifies proofs using the circuit's verification key.
+- **Website Integration:** Protects a "members-only" area of a simple website.
+- **Session Management:** Remembers users who have solved a CAPTCHA, granting access to protected content.
+- **Logout Functionality:** Complete authentication flow.
+- **Rate Limiting:** API endpoints are protected against denial-of-service attacks.
 
-Website Integration: The zkCAPTCHA is used to protect a "members-only" area of a simple website, demonstrating a practical application.
+---
 
-Session Management: The backend uses sessions to remember users who have successfully solved a CAPTCHA, allowing them to access protected content.
+## 🛠 Tech Stack
 
-Logout Functionality: A complete authentication flow is provided.
+- **ZK Circuit:** [Circom](https://docs.circom.io/) — Arithmetic circuit for the puzzle.
+- **Proof System:** [snarkjs](https://github.com/iden3/snarkjs) — Circuit compilation, trusted setup, proof generation (client-side), and verification (backend).
+- **Backend:** Python with Flask — Serves frontend, generates challenges, verifies proofs.
+- **Frontend:** HTML, JavaScript, Tailwind CSS — UI and client-side logic.
 
-Rate Limiting: The API endpoints are protected against simple denial-of-service attacks.
+---
 
-Tech Stack
-ZK Circuit: Circom - Used to write the arithmetic circuit for the mathematical puzzle.
+## 📁 Project Structure
 
-Proof System: snarkjs - Used for compiling the circuit, trusted setup, generating proofs (client-side), and verifying proofs (backend).
+```
+zkcaptcha/
+├── backend/
+│   └── app.py                  # Flask web server
+├── build/
+│   ├── puzzle.r1cs             # Compiled circuit constraint system
+│   ├── puzzle_js/
+│   │   └── puzzle.wasm         # WebAssembly circuit for browser
+│   ├── puzzle_final.zkey       # Final proving key
+│   └── verification_key.json   # Key for backend proof verification
+├── circuits/
+│   └── puzzle.circom           # ZK circuit source code
+├── frontend/
+│   ├── index.html              # CAPTCHA page
+│   ├── main.html               # Public homepage
+│   ├── members.html            # Members-only page
+│   └── script.js               # Client-side proof generation
+└── setup.mjs                   # Node.js script for circuit/key setup
+```
 
-Backend: Python with Flask - A micro web framework used to serve the frontend, generate challenges, and verify proofs.
+---
 
-Frontend: HTML, JavaScript, and Tailwind CSS - For creating the user interface and handling client-side logic.
+## 🚀 Getting Started
 
-Getting Started
-Prerequisites
-Node.js and npm: Required to run the setup script and install snarkjs.
+### Prerequisites
 
-Python 3 and pip: Required for the Flask backend.
+- **Node.js & npm:** For setup script and `snarkjs`.
+- **Python 3 & pip:** For Flask backend.
+- **Circom:** Install globally:
+  ```
+  npm install -g circom
+  ```
+- **snarkjs:** (Optional, for CLI use)
+  ```
+  npm install -g snarkjs
+  ```
 
-Circom: You must have the Circom compiler installed globally.
+### Installation & Setup
 
-npm install -g circom
+1. **Clone the repository** (or set up the files as provided).
 
-snarkjs: It's helpful to have it installed globally for command-line use.
+2. **Install Python dependencies:**
 
-npm install -g snarkjs
+   ```
+   pip install Flask Flask-Limiter
+   ```
 
-Installation & Setup
-Clone the repository (or set up the files as provided).
+3. **Download the Powers of Tau file:**
 
-Install Python Dependencies:
-Navigate to the project's root directory and run:
+   - Go to [snarkjs Powers of Tau](https://github.com/iden3/snarkjs#7-powers-of-tau) and download a `.ptau` file (e.g., `pot12_final.ptau`).
+   - Place it inside the `build/` directory.
 
-pip install Flask Flask-Limiter
+4. **Run the setup script (CRITICAL):**
+   ```
+   node setup.mjs
+   ```
+   - This compiles the circuit, generates keys, and copies `.wasm` and `.zkey` files to the `frontend/` directory.
 
-Download the Powers of Tau File:
-The snarkjs trusted setup requires a "Powers of Tau" file. You need to manually download one.
+---
 
-Go to https://github.com/iden3/snarkjs#7-powers-of-tau and download a .ptau file. The one used for this project is pot12_final.ptau.
+## 🏃 How to Run
 
-Place the downloaded .ptau file inside the build/ directory.
+1. **Start the backend server:**
 
-Run the Setup Script (CRITICAL):
-This script compiles the circuit and generates the proving and verification keys. From the project root, run:
+   ```
+   python backend/app.py
+   ```
 
-node setup.mjs
+   - The server runs at [http://127.0.0.1:5001](http://127.0.0.1:5001).
 
-This will populate the build/ directory with the necessary keys and copy the .wasm and .zkey files to the frontend/ directory.
+2. **Access the website:**
+   - Open your browser and go to [http://127.0.0.1:5001](http://127.0.0.1:5001).
+   - Click the login button and solve the zkCAPTCHA to access the members-only area.
+   - For testing, the correct answer to each puzzle is printed in the backend terminal.
 
-How to Run
-Start the Backend Server:
-From the project root, run the following command:
-
-python backend/app.py
-
-The server will start, and you'll see output indicating it's running on http://127.0.0.1:5001.
-
-Access the Website:
-Open your web browser and navigate to:
-http://127.0.0.1:5001
-
-You can now interact with the website, click the login button, and solve the zkCAPTCHA to access the members-only area. The correct answer to each puzzle will be printed in the backend terminal for easy testing.
+---
