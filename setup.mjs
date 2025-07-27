@@ -8,7 +8,7 @@ const execAsync = promisify(exec);
 const circuitsDir = './circuits';
 const buildDir = './build';
 const frontendDir = './frontend';
-const circuitName = 'puzzle'; // We are back to the puzzle circuit
+const circuitName = 'puzzle';
 
 const ptauFinalPath = path.join(buildDir, 'pot12_final.ptau');
 
@@ -29,8 +29,9 @@ async function run() {
         console.log("✅ Powers of Tau file found!");
 
         console.log(`\n[2/4] Compiling ${circuitName}.circom...`);
+        // THAY ĐỔI Ở ĐÂY: Thêm cờ -l để chỉ định thư mục thư viện node_modules
         const { stdout: compileOut, stderr: compileErr } = await execAsync(
-            `circom ${circuitsDir}/${circuitName}.circom --r1cs --wasm --sym -o ${buildDir}`
+            `circom ${circuitsDir}/${circuitName}.circom --r1cs --wasm --sym -o ${buildDir} -l ./node_modules`
         );
         if (compileErr) console.error(compileErr);
         console.log(compileOut);
