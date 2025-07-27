@@ -103,3 +103,40 @@ zkcaptcha/
    - For testing, the correct answer to each puzzle is printed in the backend terminal.
 
 ---
+workflow của ZK-CAPTCHA
+
+Dưới đây là mô tả chi tiết các bước trong luồng hoạt động đó.
+---
+### ## Bước 1: Khởi tạo và Tạo Thử thách (Tương tác Client-Server)
+
+1.  **Người dùng truy cập**: Người dùng mở trình duyệt và truy cập vào trang `/login`.
+2.  **Yêu cầu Thử thách**: Ngay khi trang tải xong, `script.js` ở phía **frontend** sẽ tự động gửi một yêu cầu mạng đến endpoint `/challenge` của **backend**.
+3.  **Server xử lý**: **Backend** (`app.py`) nhận được yêu cầu và thực thi hàm `generate_new_challenge`:
+    * Nó tạo ra một lời giải bí mật (`private_solution`, ví dụ: `10`).
+    * Từ đó, nó tạo ra một câu đố công khai (`display_puzzle`, ví dụ: `1000`).
+    * Quan trọng nhất, nó tạo ra một **`secretKey`** ngẫu nhiên và duy nhất cho phiên làm việc này.
+    * Nó lưu `secretKey` vào `session` của người dùng phía server để ghi nhớ.
+4.  **Gửi lại Thử thách**: Server gửi lại cho frontend một đối tượng JSON chứa `display_puzzle` và `secretKey`.
+
+### ## Bước 2: Tạo Bằng chứng (Hoàn toàn phía Client)
+
+Đây là bước cốt lõi của ZK-SNARK và diễn ra hoàn toàn trên máy của người dùng.
+
+1.  **Hiển thị câu đố**: `script.js` nhận dữ liệu từ server, hiển thị `display_puzzle` (`1000`) cho người dùng và lưu `secretKey` vào một biến JavaScript.
+2.  **Người dùng giải đố**: Người dùng nhập câu trả lời (`10`) vào ô input.
+3.  **Tạo Bằng chứng**: Khi người dùng nhấn nút "Generate Proof & Verify":
+    * `script.js` lấy câu trả lời của người dùng (`solution`) và `secretKey` đã lưu.
+    * Nó gọi hàm `snarkjs.groth16.fullProve` với các đầu vào này, cùng với file mạch `puzzle.wasm` và khóa chứng minh `puzzle_final.zkey`.
+    * Hàm này thực hiện các phép toán phức tạp để tạo ra một **`proof`** (bằng chứng mật mã). Bằng chứng này chứng minh rằng người dùng biết một `solution` và `secretKey` khớp với logic trong mạch (`puzzle.circom`) mà không tiết lộ chúng là gì.
+
+### ## Bước 3: Xác thực Bằng chứng và Cấp quyền (Tương tác Client-Server)
+
+1.  **Gửi Bằng chứng**: `script.js` gửi đối tượng `proof` vừa tạo đến endpoint `/verify` của **backend**.
+2.  **Server Xác thực**: **Backend** (`app.py`) nhận được `proof` và gọi hàm `verify_proof`:
+    * Hàm này sử dụng `snarkjs` cùng với **`verification_key.json`** (khóa xác thực) để kiểm tra xem `proof` có hợp lệ về mặt toán học hay không.
+3.  **Phản hồi và Cấp quyền**:
+    * Nếu `proof` hợp lệ, backend sẽ thiết lập `session['verified'] = True`, và trả về một JSON thông báo thành công cùng với đường dẫn chuyển hướng đến `/members`.
+    * Nếu không hợp lệ, nó sẽ trả về một JSON thông báo lỗi.
+4.  **Hoàn tất**: Frontend nhận được phản hồi thành công và tự động chuyển hướng người dùng đến trang thành viên, hoàn tất quy trình xác thực.
+
+Luồng hoạt động này đảm bảo rằng thông tin nhạy cảm nhất (lời giải của người dùng) không bao giờ rời khỏi trình duyệt của họ, qua đó thực hiện đúng mục tiêu bảo vệ quyền riêng tư.
